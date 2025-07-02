@@ -22,4 +22,5 @@ const ExcelRecordSchema = new mongoose.Schema(
     },
     { timestamps: true })
 
-export const ExcelRecordModel = mongoose.model('ExcelRecordModel', ExcelRecordSchema)
+const ExcelRecordModel = mongoose.model('ExcelRecord', ExcelRecordSchema)
+export default ExcelRecordModel
