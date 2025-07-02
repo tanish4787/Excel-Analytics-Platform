@@ -19,8 +19,29 @@ const ExcelRecordSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-    },
-    { timestamps: true })
+        insights: {
+            type: Object,
+        },
+        analysis: {
+            type: [
+                {
+                    chartType: String,
+                    xAxis: String,
+                    yAxis: String,
+                    filters: Object,
+                    createdAt: {
+                        type: Date,
+                        default: Date.now,
+                    },
+                },
+            ],
+            default: [],
+        },
 
-const ExcelRecordModel = mongoose.model('ExcelRecord', ExcelRecordSchema)
-export default ExcelRecordModel
+    },
+    { timestamps: true }
+);
+
+
+const ExcelRecord = mongoose.model('ExcelRecord', ExcelRecordSchema)
+export default ExcelRecord

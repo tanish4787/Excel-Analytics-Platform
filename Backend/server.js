@@ -20,6 +20,14 @@ const startServer = async () => {
         app.use('/api/user', userRoutes)
         app.use('/api/admin', adminRoutes)
         app.use('/api/upload', uploadRoutes)
+        app.use((err, req, res, next) => {
+            console.error(err.stack);
+            res.status(err.statusCode || 500).json({
+                success: false,
+                message: err.message || 'Internal Server Error',
+            });
+        });
+
 
 
 

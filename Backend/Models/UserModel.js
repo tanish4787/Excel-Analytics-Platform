@@ -27,10 +27,24 @@ const userSchema = new mongoose.Schema({
         default: "user",
         required: true,
     },
-    history: {
-        type: Array,
-        default: [],
-    },
+    history: [
+        {
+            fileId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'ExcelRecord',
+            },
+            action: {
+                type: String,
+                enum: ['view', 'download'],
+            },
+            timestamp: {
+                type: Date,
+                default: Date.now,
+            },
+        },
+    ],
+
+
 }, { timestamps: true })
 
 const UserModel = mongoose.model("UserModel", userSchema);
