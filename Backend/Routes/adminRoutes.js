@@ -1,7 +1,7 @@
 import express from "express";
-import { protectedRoute, isAdmin } from "../Middlewares/auth.js";
+import { protectedRoute, isAdmin } from "../Middlewares/authMiddleware.js";
 import User from "../Models/UserModel.js";
-import ExcelRecord from "../Models/ExcelRecord.js"
+import ExcelRecord from "../Models/ExcelRecord.js";
 
 const router = express.Router();
 
@@ -48,21 +48,16 @@ router.delete("/users/:id", protectedRoute, isAdmin, async (req, res) => {
   }
 });
 
-router.delete(
-  "/uploads/:id",
-  protectedRoute,
-  isAdmin,
-  async (req, res) => {
-    try {
-      const upload = await ExcelRecord.findByIdAndDelete(req.params.id);
-      if (!upload) return res.status(404).json({ message: "Upload not found" });
+router.delete("/uploads/:id", protectedRoute, isAdmin, async (req, res) => {
+  try {
+    const upload = await ExcelRecord.findByIdAndDelete(req.params.id);
+    if (!upload) return res.status(404).json({ message: "Upload not found" });
 
-      res.json({ message: "Upload deleted successfully" });
-    } catch (err) {
-      console.error("Admin - Delete Upload Error:", err);
-      res.status(500).json({ message: "Failed to delete upload" });
-    }
+    res.json({ message: "Upload deleted successfully" });
+  } catch (err) {
+    console.error("Admin - Delete Upload Error:", err);
+    res.status(500).json({ message: "Failed to delete upload" });
   }
-);
+});
 
 export default router;
