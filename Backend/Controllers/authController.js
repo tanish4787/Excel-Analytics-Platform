@@ -24,7 +24,7 @@ export const registerUser = async (req, res) => {
       lastName,
       email,
       password: hashedPass,
-      role: "user"
+      role: "user",
     });
 
     newUser.password = undefined;
@@ -65,13 +65,20 @@ export const loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     user.password = undefined;
 
     return res.status(200).json({
       success: true,
       message: "Login Successful.",
       user,
-      token,
     });
   } catch (error) {
     console.error(error);
