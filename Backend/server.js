@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
-import cors from 'cors'
+
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 import connectDB from "./Config/db.js";
-import express from "express";
 import authRoutes from "./Routes/authRoutes.js";
 import userRoutes from "./Routes/userRoutes.js";
 import adminRoutes from "./Routes/adminRoutes.js";
@@ -11,26 +13,26 @@ import uploadRoutes from "./Routes/uploadRoutes.js";
 
 const startServer = async () => {
   try {
-    const app = express();
-    app.use(express.json());
     await connectDB();
 
-  
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://excel-analytics-platform-mu.vercel.app"
-    ],
-    credentials: true,
-  })
-);
+    const app = express();
+
+    app.use(
+      cors({
+        origin: "https://excel-analytics-platform-mu.vercel.app",
+        credentials: true,
+      })
+    );
+
+    app.use(express.json());
+    app.use(cookieParser()); 
 
     app.use("/api/auth", authRoutes);
     app.use("/api/user", userRoutes);
     app.use("/api/admin", adminRoutes);
     app.use("/api/uploads", uploadRoutes);
-    app.use("/admin",adminRoutes)
+    app.use("/admin", adminRoutes);
+
     app.use((err, req, res, next) => {
       console.error(err.stack);
       res.status(err.statusCode || 500).json({
@@ -39,11 +41,12 @@ app.use(
       });
     });
 
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(`Server running on ${process.env.PORT || 5000}`);
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error(`Error Starting Server`, error);
+    console.error("❌ Error starting server", error);
     process.exit(1);
   }
 };
