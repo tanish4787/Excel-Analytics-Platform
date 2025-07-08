@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://excel-analytics-platform-plha.onrender.com/api",
+  baseURL:
+    "https://excel-analytics-platform-plha.onrender.com/api",
   withCredentials: true,
 });
 
