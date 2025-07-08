@@ -15,12 +15,16 @@ const startServer = async () => {
     app.use(express.json());
     await connectDB();
 
-    app.use(
-      cors({
-        origin: process.env.FRONTEND_URI,
-        credentials: true,
-      })
-    );
+  
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://excel-analytics-platform-mu.vercel.app"
+    ],
+    credentials: true,
+  })
+);
 
     app.use("/api/auth", authRoutes);
     app.use("/api/user", userRoutes);
