@@ -9,7 +9,7 @@ import {
   saveAnalysis,
   getAnalysisSessions,
 } from "../Controllers/uploadController.js";
-import { protectedRoute } from "../Middlewares/authMiddleware.js";
+import { protectedRoute } from "../Middlewares/auth.js";
 
 const router = express.Router();
 

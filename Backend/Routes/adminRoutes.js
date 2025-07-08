@@ -1,5 +1,5 @@
 import express from "express";
-import { protectedRoute, isAdmin } from "../Middlewares/authMiddleware.js";
+import { protectedRoute, isAdmin } from "../Middlewares/auth.js";
 import User from "../Models/UserModel.js";
 import ExcelRecord from "../Models/ExcelRecord.js";
 

@@ -1,10 +1,10 @@
 import express from "express";
 import { registerUser, loginUser } from "../Controllers/authController.js";
-import { authMiddleware } from "../Middlewares/authMiddleware.js";
+import { protectedRoute } from "../Middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/validate-token", authMiddleware, (req, res) => {
+router.get("/validate-token", protectedRoute, (req, res) => {
   res.status(200).json({
     success: true,
     user: req.user,
