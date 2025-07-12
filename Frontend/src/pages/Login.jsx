@@ -13,6 +13,7 @@ const schema = yup.object().shape({
 
 const Login = () => {
   const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -22,13 +23,13 @@ const Login = () => {
   const onSubmit = async (data) => {
     try {
       const res = await API.post("/auth/login", data);
+      toast.success("Login successful!");
+      console.log("✅ Login success:", res.data);
 
-      if (res.data.success) {
-        toast.success("Login successful!");
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     } catch (err) {
       toast.error(err?.response?.data?.message || "Login failed");
+      console.error("❌ Login error:", err.response?.data || err.message);
     }
   };
 

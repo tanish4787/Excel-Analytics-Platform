@@ -12,6 +12,10 @@ import adminRoutes from "./Routes/adminRoutes.js";
 import uploadRoutes from "./Routes/uploadRoutes.js";
 
 const startServer = async () => {
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://excel-analytics-platform-mu.vercel.app",
+  ];
   try {
     await connectDB();
 
@@ -19,13 +23,19 @@ const startServer = async () => {
 
     app.use(
       cors({
-        origin: "https://excel-analytics-platform-mu.vercel.app",
+        origin: function (origin, callback) {
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error("Not allowed by CORS"));
+          }
+        },
         credentials: true,
       })
     );
 
     app.use(express.json());
-    app.use(cookieParser()); 
+    app.use(cookieParser());
 
     app.use("/api/auth", authRoutes);
     app.use("/api/user", userRoutes);
