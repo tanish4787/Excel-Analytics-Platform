@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -6,19 +6,45 @@ import { CloudUpload } from "lucide-react";
 
 const UploadPage = () => {
   const [file, setFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
   const [summary, setSummary] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const inputRef = useRef(null);
   const navigate = useNavigate();
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    if (!selected.name.endsWith(".xlsx")) {
+      toast.error("Only .xlsx files allowed.");
+      return;
+    }
+    setFile(selected);
+    setSummary(null);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = () => setDragActive(false);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (!dropped.name.endsWith(".xlsx")) {
+      toast.error("Only .xlsx files allowed.");
+      return;
+    }
+    setFile(dropped);
     setSummary(null);
   };
 
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!file) return toast.error("Please select a file.");
-
     const formData = new FormData();
     formData.append("file", file);
 
@@ -49,17 +75,35 @@ const UploadPage = () => {
             Upload Excel File
           </h2>
           <p className="text-sm text-gray-500">
-            Only .xlsx files are supported
+            Drag and drop or browse to upload .xlsx file
           </p>
         </div>
 
-        <form onSubmit={handleUpload} className="space-y-4">
-          <input
-            type="file"
-            accept=".xlsx"
-            onChange={handleFileChange}
-            className="w-full border border-gray-300 rounded-md px-4 py-2 file:bg-blue-50 file:border-0 file:mr-4 file:py-2 file:px-4 file:rounded file:text-blue-700"
-          />
+        <form
+          onSubmit={handleUpload}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className="space-y-4"
+        >
+          <div
+            className={`border-2 ${
+              dragActive ? "border-blue-500 bg-blue-50" : "border-dashed border-gray-300"
+            } p-6 rounded-md text-center transition cursor-pointer`}
+            onClick={() => inputRef.current.click()}
+          >
+            <p className="text-gray-600 mb-2">
+              {file ? `Selected: ${file.name}` : "Drag & drop your file here"}
+            </p>
+            <p className="text-sm text-gray-400">or click to browse</p>
+            <input
+              type="file"
+              ref={inputRef}
+              accept=".xlsx"
+              onChange={handleFileChange}
+              hidden
+            />
+          </div>
 
           <button
             type="submit"
