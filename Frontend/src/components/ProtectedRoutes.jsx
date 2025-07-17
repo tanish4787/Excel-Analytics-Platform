@@ -1,40 +1,75 @@
-
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import toast from "react-hot-toast";
 import API from "../services/api";
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const [allowed, setAllowed] = useState(false);
-  const [loading, setLoading] = useState(true);
+const ProtectedRoute = ({ children, adminOnly }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await API.get("/auth/validate-token");
-        console.log("✅ Auth response:", res.data);
+    const checkAuthStatus = async () => {
+      let authStatus = false;
+      let adminStatus = false;
 
-        if (adminOnly && res.data.user.role !== "admin") {
-          console.log("⛔ Not an admin");
-          setAllowed(false);
+      try {
+        const response = await API.get("/user/history");
+
+        if (response.data && response.data.success) {
+          authStatus = true;
+          const user = JSON.parse(localStorage.getItem("user"));
+          if (user) {
+            adminStatus = user.role === "admin";
+          } else {
+            
+            toast.error("User data missing. Please log in again.");
+            localStorage.removeItem("user");
+            localStorage.removeItem("token"); 
+          }
         } else {
-          setAllowed(true);
+          toast.error(
+            response.data?.message || "Session invalid. Please log in again."
+          );
+          localStorage.removeItem("user");
+          localStorage.removeItem("token"); 
         }
-      } catch (err) {
-        console.log(
-          "❌ Auth validation error:",
-          err.response?.data || err.message
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message ||
+            "Session expired or invalid. Please log in again."
         );
-        setAllowed(false);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token"); 
       } finally {
-        setLoading(false);
+        setIsAuthenticated(authStatus);
+        setIsAdminUser(adminStatus);
+        setIsLoading(false);
       }
     };
 
-    checkAuth();
-  }, [adminOnly]);
+    checkAuthStatus();
+  }, []);
 
-  if (loading) return <div className="text-center py-20">Checking auth...</div>;
-  return allowed ? children : <Navigate to="/login" />;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-gray-700 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        Loading authentication...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    toast.error("You need to log in to access this page.");
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (adminOnly && !isAdminUser) {
+    toast.error("You do not have administrative access to this page.");
+    return <Navigate to="/" replace />;
+  }
+
+  return children ? children : <Outlet />;
 };
 
 export default ProtectedRoute;

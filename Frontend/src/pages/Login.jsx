@@ -1,99 +1,135 @@
 import React from "react";
+import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Link, useNavigate } from "react-router-dom";
 import API from "../services/api";
-import { toast } from "react-hot-toast";
 
 const schema = yup.object().shape({
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup.string().min(6).required("Password is required"),
+  email: yup
+    .string()
+    .email("Please enter a valid email address.")
+    .required("Email is required."),
+  password: yup
+    .string()
+    .required("Password is required.")
+    .min(6, "Password must be at least 6 characters."),
 });
 
 const Login = () => {
   const navigate = useNavigate();
-
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: yupResolver(schema) });
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: "onTouched",
+  });
 
   const onSubmit = async (data) => {
     try {
       const res = await API.post("/auth/login", data);
-      toast.success("Login successful!");
-      console.log("✅ Login success:", res.data);
 
-      navigate("/dashboard");
+      if (res.data && res.data.success) {
+        if (res.data.token) { 
+          localStorage.setItem("token", res.data.token);
+        }
+        if (res.data.user) {
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+        }
+        toast.success("Login successful! Redirecting...");
+        reset();
+        navigate("/dashboard");
+      } else {
+        toast.error(
+          res.data?.message || "Login failed due to an unexpected response."
+        );
+      }
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Login failed");
-      console.error("❌ Login error:", err.response?.data || err.message);
+      const errorMessage =
+        err.response?.data?.message || "Login failed. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8">
-        <h2 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-          Welcome Back
+    <div className="flex items-center justify-center p-4 sm:p-6 lg:p-8 flex-1"> 
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100"
+      >
+        <h2 className="text-3xl font-extrabold mb-8 text-center text-gray-800">
+          Welcome Back!
         </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              {...register("email")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="you@example.com"
-            />
-            {errors.email && (
-              <p className="text-sm text-red-600 mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+        <div className="mb-5">
+          <label
+            htmlFor="email"
+            className="block text-gray-700 text-sm font-semibold mb-2"
+          >
+            Email Address:
+          </label>
+          <input
+            type="email"
+            id="email"
+            {...register("email")}
+            className={`shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ 
+              errors.email ? "border-red-500" : "border-gray-300"
+            }`}
+            placeholder="your.email@example.com"
+            disabled={isSubmitting}
+          />
+          {errors.email && (
+            <p className="text-red-600 text-xs mt-2">{errors.email.message}</p>
+          )}
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              {...register("password")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
-            />
-            {errors.password && (
-              <p className="text-sm text-red-600 mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+        <div className="mb-6">
+          <label
+            htmlFor="password"
+            className="block text-gray-700 text-sm font-semibold mb-2"
+          >
+            Password:
+          </label>
+          <input
+            type="password"
+            id="password"
+            {...register("password")}
+            className={`shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ 
+              errors.password ? "border-red-500" : "border-gray-300"
+            }`}
+            placeholder="••••••••"
+            disabled={isSubmitting}
+          />
+          {errors.password && (
+            <p className="text-red-600 text-xs mt-2">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
 
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4"> 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-md hover:from-blue-700 hover:to-indigo-700 transition"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg w-full sm:w-auto" 
           >
-            {isSubmitting ? "Logging in..." : "Login"}
+            {isSubmitting ? "Logging in..." : "Sign In"}
           </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Don’t have an account?{" "}
-          <Link
-            to="/register"
-            className="text-blue-600 hover:underline font-medium"
-          >
-            Register
-          </Link>
-        </p>
-      </div>
+          <p className="text-sm text-gray-600 text-center sm:text-right mt-4 sm:mt-0"> 
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-blue-600 hover:text-blue-800 font-semibold transition duration-200 ease-in-out"
+            >
+              Register
+            </Link>
+          </p>
+        </div>
+      </form>
     </div>
   );
 };

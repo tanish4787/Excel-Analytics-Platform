@@ -1,42 +1,25 @@
-import axios from "axios";
+
+import axios from 'axios';
 
 const API = axios.create({
-  baseURL:"https://excel-analytics-platform-plha.onrender.com/api",
-  //  "http://localhost:8000/api",
+  baseURL: import.meta.env.VITE_APP_BACKEND_URL || 'http://localhost:8000/api',
   withCredentials: true,
-});
 
-const authHeader = () => ({
   headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    "Content-Type": "application/json",
   },
 });
 
-export const loginUser = (data) => API.post("/auth/login", data);
-export const registerUser = (data) => API.post("/auth/register", data);
-
-export const uploadExcelFile = (formData) =>
-  API.post("/uploads", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-      ...authHeader().headers,
-    },
-  });
-
-export const getUserUploads = () => API.get("/uploads/all", authHeader());
-
-export const getSingleUpload = (id) => API.get(`/uploads/${id}`, authHeader());
-
-export const downloadExcel = (id) =>
-  `${API.defaults.baseURL}/uploads/download/excel/${id}`;
-
-export const downloadJson = (id) =>
-  `${API.defaults.baseURL}/uploads/download/json/${id}`;
-
-export const saveAnalysis = (id, payload) =>
-  API.post(`/uploads/analysis/${id}`, payload, authHeader());
-
-export const getAnalysisSessions = (id) =>
-  API.get(`/uploads/analysis/${id}`, authHeader());
+API.interceptors.request.use(
+  (config) => {    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export default API;

@@ -17,6 +17,7 @@ const UploadPage = () => {
     if (!selected) return;
     if (!selected.name.endsWith(".xlsx")) {
       toast.error("Only .xlsx files allowed.");
+      setFile(null);
       return;
     }
     setFile(selected);
@@ -34,8 +35,10 @@ const UploadPage = () => {
     e.preventDefault();
     setDragActive(false);
     const dropped = e.dataTransfer.files?.[0];
+    if (!dropped) return;
     if (!dropped.name.endsWith(".xlsx")) {
       toast.error("Only .xlsx files allowed.");
+      setFile(null);
       return;
     }
     setFile(dropped);
@@ -44,7 +47,10 @@ const UploadPage = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) return toast.error("Please select a file.");
+    if (!file) {
+      toast.error("Please select a file to upload.");
+      return;
+    }
     const formData = new FormData();
     formData.append("file", file);
 
@@ -53,7 +59,6 @@ const UploadPage = () => {
       const res = await API.post("/uploads", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
       setSummary(res.data.summary);
@@ -67,14 +72,14 @@ const UploadPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-4 py-20 flex items-center justify-center">
-      <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-lg transition duration-500">
+    <div className="flex flex-1 items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="bg-white shadow-xl rounded-xl p-6 sm:p-8 w-full max-w-lg">
         <div className="text-center mb-6">
-          <CloudUpload className="mx-auto text-blue-600" size={36} />
-          <h2 className="text-2xl font-bold text-gray-800 mt-2">
+          <CloudUpload className="mx-auto text-blue-600 mb-2" size={40} />
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
             Upload Excel File
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 mt-1">
             Drag and drop or browse to upload .xlsx file
           </p>
         </div>
@@ -88,11 +93,13 @@ const UploadPage = () => {
         >
           <div
             className={`border-2 ${
-              dragActive ? "border-blue-500 bg-blue-50" : "border-dashed border-gray-300"
-            } p-6 rounded-md text-center transition cursor-pointer`}
+              dragActive
+                ? "border-blue-500 bg-blue-50"
+                : "border-dashed border-gray-300"
+            } p-8 rounded-lg text-center transition-all cursor-pointer`}
             onClick={() => inputRef.current.click()}
           >
-            <p className="text-gray-600 mb-2">
+            <p className="text-gray-600 mb-2 font-medium">
               {file ? `Selected: ${file.name}` : "Drag & drop your file here"}
             </p>
             <p className="text-sm text-gray-400">or click to browse</p>
@@ -107,9 +114,9 @@ const UploadPage = () => {
 
           <button
             type="submit"
-            disabled={uploading}
-            className={`w-full py-2 rounded-md text-white font-medium transition ${
-              uploading
+            disabled={uploading || !file}
+            className={`w-full py-3 rounded-lg text-white font-medium transition shadow-md hover:shadow-lg ${
+              uploading || !file
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             }`}
@@ -119,19 +126,25 @@ const UploadPage = () => {
         </form>
 
         {summary && (
-          <div className="mt-6 bg-gray-50 border border-gray-200 p-4 rounded-md animate-fade-in">
-            <h3 className="text-lg font-semibold mb-2 text-gray-700">
+          <div className="mt-6 bg-gray-50 border border-gray-200 p-5 rounded-lg animate-fade-in shadow-sm">
+            <h3 className="text-lg font-semibold mb-3 text-gray-700">
               📊 Upload Summary
             </h3>
-            <p className="text-gray-600">✅ Rows: {summary.rows}</p>
-            <p className="text-gray-600">
-              📈 Total Sales: ₹{summary.totalSales}
-            </p>
+            <div className="space-y-2 text-gray-700">
+              <p className="flex justify-between items-center">
+                <span className="font-medium">✅ Rows:</span>
+                <span className="font-semibold">{summary.rows}</span>
+              </p>
+              <p className="flex justify-between items-center">
+                <span className="font-medium">💰 Total Sales:</span>
+                <span className="font-semibold">₹{summary.totalSales}</span>
+              </p>
+            </div>
             <button
-              onClick={() => navigate("/dashboard")}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+              onClick={() => navigate(`/view/${summary.uploadId}`)}
+              className="mt-4 w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-md font-medium"
             >
-              Go to Dashboard
+              View Data & Insights
             </button>
           </div>
         )}

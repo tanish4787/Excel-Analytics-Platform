@@ -1,68 +1,104 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
-import { LayoutDashboard, UploadCloud, ViewIcon , LogOut, BarChart3 } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom"; 
+import {
+  LayoutDashboard,
+  UploadCloud,
+  LogOut,
+  Home,
+  LogIn,
+  UserPlus,
+  X,
+  Menu, 
+} from "lucide-react";
+import { toast } from "react-hot-toast";
 
-const Sidebar = () => {
-  const navLinks = [
-    {
-      path: "/dashboard",
-      label: "Dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      path: "/upload",
-      label: "Upload File",
-      icon: <UploadCloud size={20} />,
-    },
-    {
-      path: "/view",
-      label: "View Files",
-      icon: <ViewIcon size={20} />,
-    },
-  ];
+const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const location = useLocation();
+  const navigate = useNavigate(); 
+  const isAuthenticated = !!localStorage.getItem("token");
 
-  const logout = () => {
+  const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "/login";
+    toast.success("Logged out successfully!");
+    navigate("/login");
   };
 
+  const authenticatedNavItems = [
+    { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { name: "Upload Data", icon: UploadCloud, path: "/upload" },
+  ];
+
+
+  const currentNavItems = authenticatedNavItems;
+
   return (
-    <aside className="h-screen w-64 bg-white border-r shadow-lg hidden md:flex flex-col px-6 py-8 space-y-6 animate-fade-in">
-      <div className="flex items-center gap-2 text-xl font-bold text-blue-700">
-        <BarChart3 size={24} />
-        <span>Excel Analytics</span>
-      </div>
+    <>
+      <div
+        className={`fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity duration-300 ${
+          isOpen ? "opacity-100 block" : "opacity-0 hidden"
+        } lg:hidden`} 
+        onClick={toggleSidebar}
+      ></div>
 
-      <nav className="flex flex-col gap-2">
-        {navLinks.map(({ path, label, icon }) => (
-          <NavLink
-            key={path}
-            to={path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ease-in-out
-              ${
-                isActive
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
-              }`
-            }
+      <aside
+        className={`fixed inset-y-0 left-0 transform ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } 
+        w-64 bg-gray-800 text-white p-5 flex flex-col transition-transform duration-300 ease-in-out
+        z-40 shadow-lg lg:hidden`} 
+      >
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-2xl font-bold text-blue-400">Excel Analytics</h2>
+          <button
+            onClick={toggleSidebar}
+            className="text-white focus:outline-none p-1 rounded-md hover:bg-gray-700"
+            aria-label="Close sidebar"
           >
-            {icon}
-            <span>{label}</span>
-          </NavLink>
-        ))}
-      </nav>
+            <X size={24} />
+          </button>
+        </div>
 
-      <div className="mt-auto border-t pt-6">
-        <button
-          onClick={logout}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition"
-        >
-          <LogOut size={20} />
-          Logout
-        </button>
-      </div>
-    </aside>
+        <nav className="flex-1 space-y-2">
+          {isAuthenticated && currentNavItems.map((item) => ( 
+            <NavLink
+              key={item.name}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center p-3 rounded-lg transition-colors duration-200
+                ${
+                  isActive
+                    ? "bg-blue-600 text-white"
+                    : "hover:bg-gray-700 text-gray-300"
+                }
+                group`
+              }
+              onClick={toggleSidebar} 
+            >
+              <item.icon
+                size={20}
+                className="mr-3 text-blue-300 group-hover:text-white"
+              />
+              <span className="font-medium">{item.name}</span>
+            </NavLink>
+          ))}
+          {isAuthenticated && (
+            <button
+              onClick={() => {
+                handleLogout();
+                toggleSidebar(); 
+              }}
+              className="flex items-center w-full p-3 rounded-lg text-left transition-colors duration-200 hover:bg-red-600 text-gray-300 group"
+            >
+              <LogOut
+                size={20}
+                className="mr-3 text-red-300 group-hover:text-white"
+              />
+              <span className="font-medium">Logout</span>
+            </button>
+          )}
+        </nav>
+      </aside>
+    </>
   );
 };
 
