@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, adminOnly }) => {
       let adminStatus = false;
 
       try {
-        const response = await API.get("/user/history");
+        const response = await API.get("/api/user/history");
 
         if (response.data && response.data.success) {
           authStatus = true;

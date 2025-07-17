@@ -26,7 +26,7 @@ const Register = () => {
       const res = await API.post("/api/auth/register", data);
       if (res.data?.success) {
         toast.success("Account created successfully!");
-        navigate("/auth"); 
+        navigate("/login"); 
       }
     } catch (err) {
       toast.error(err?.response?.data?.message || "Registration failed");
@@ -126,7 +126,7 @@ const Register = () => {
         <p className="text-center text-sm text-gray-500 mt-4">
           Already have an account?{" "}
           <Link
-            to="/auth" 
+            to="/login" 
             className="text-blue-600 hover:underline font-medium"
           >
             Login
