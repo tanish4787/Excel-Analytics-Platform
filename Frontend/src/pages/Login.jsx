@@ -31,7 +31,7 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      const res = await API.post("/auth/login", data);
+      const res = await API.post("/api/auth/login", data);
 
       if (res.data && res.data.success) {
         if (res.data.token) { 

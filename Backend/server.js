@@ -18,7 +18,7 @@ app.use(cookieParser());
 app.use(cors({
   origin: 'https://excel-analytics-platform-mu.vercel.app',
   credentials: true,
-  methods: ['GET','HEAD','PUT','PATCH','POST','FDELETE'],
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE'],
   allowedHeaders: ['Content-Type','Authorization'],
 }));
 

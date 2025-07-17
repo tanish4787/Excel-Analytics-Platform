@@ -23,7 +23,7 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     try {
-      const res = await API.post("/auth/register", data);
+      const res = await API.post("/api/auth/register", data);
       if (res.data?.success) {
         toast.success("Account created successfully!");
         navigate("/auth"); 
