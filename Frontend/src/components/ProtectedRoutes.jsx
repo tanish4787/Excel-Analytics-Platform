@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, adminOnly }) => {
       let adminStatus = false;
 
       try {
-        const response = await API.get("/api/user/history");
+        const response = await API.get("/user/history");
 
         if (response.data && response.data.success) {
           authStatus = true;
@@ -61,7 +61,7 @@ const ProtectedRoute = ({ children, adminOnly }) => {
 
   if (!isAuthenticated) {
     toast.error("You need to log in to access this page.");
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (adminOnly && !isAdminUser) {
