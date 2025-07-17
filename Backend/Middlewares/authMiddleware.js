@@ -1,35 +1,23 @@
 import jwt from 'jsonwebtoken';
-import User from '../Models/UserModel.js';
+import User from '../models/UserModel.js';
 
 export const protectedRoute = async (req, res, next) => {
-    try {
-        let token;
+  let token = req.headers.authorization?.split(' ')[1] || req.cookies.token;
+  if (!token)
+    return res.status(401).json({ message: 'Not authenticated.' });
 
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer')) {
-            token = authHeader.split(' ')[1]; 
-        }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded._id).select('-password');
+    if (!user) throw new Error();
+    req.user = user;
+    next();
+  } catch {
+    return res.status(401).json({ message: 'Invalid or expired token.' });
+  }
+};
 
-        if (!token && req.cookies && req.cookies.token) {
-            token = req.cookies.token;
-        }
-
-        if (!token) {
-            return res.status(401).json({ message: "No token provided. Please log in." });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        req.user = await User.findById(decoded._id).select('-password');
-        if (!req.user) {
-            return res.status(401).json({ message: "User associated with token not found." });
-        }
-
-        next();
-    } catch (error) {
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({ message: 'Session expired. Please log in again.' });
-        }
-        return res.status(401).json({ message: 'Invalid token. Please log in again.' });
-    }
+export const isAdmin = (req, res, next) => {
+  if (req.user?.isAdmin) return next();
+  return res.status(403).json({ message: 'Admin access only' });
 };

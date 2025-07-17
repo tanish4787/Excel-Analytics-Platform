@@ -10,40 +10,28 @@ const ProtectedRoute = ({ children, adminOnly }) => {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      let authStatus = false;
-      let adminStatus = false;
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
 
       try {
         const response = await API.get("/user/history");
 
-        if (response.data && response.data.success) {
-          authStatus = true;
+        if (response.data?.success) {
+          setIsAuthenticated(true);
           const user = JSON.parse(localStorage.getItem("user"));
-          if (user) {
-            adminStatus = user.role === "admin";
-          } else {
-            
-            toast.error("User data missing. Please log in again.");
-            localStorage.removeItem("user");
-            localStorage.removeItem("token"); 
-          }
+          if (user?.role === "admin") setIsAdminUser(true);
         } else {
-          toast.error(
-            response.data?.message || "Session invalid. Please log in again."
-          );
-          localStorage.removeItem("user");
-          localStorage.removeItem("token"); 
+          throw new Error("Unauthorized");
         }
-      } catch (error) {
-        toast.error(
-          error.response?.data?.message ||
-            "Session expired or invalid. Please log in again."
-        );
+      } catch {
         localStorage.removeItem("user");
-        localStorage.removeItem("token"); 
+        localStorage.removeItem("token");
+        setIsAuthenticated(false);
       } finally {
-        setIsAuthenticated(authStatus);
-        setIsAdminUser(adminStatus);
         setIsLoading(false);
       }
     };
@@ -59,15 +47,8 @@ const ProtectedRoute = ({ children, adminOnly }) => {
     );
   }
 
-  if (!isAuthenticated) {
-    toast.error("You need to log in to access this page.");
-    return <Navigate to="/login" replace />;
-  }
-
-  if (adminOnly && !isAdminUser) {
-    toast.error("You do not have administrative access to this page.");
-    return <Navigate to="/" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (adminOnly && !isAdminUser) return <Navigate to="/" replace />;
 
   return children ? children : <Outlet />;
 };
