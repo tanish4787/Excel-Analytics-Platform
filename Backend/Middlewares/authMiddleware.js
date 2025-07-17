@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/UserModel.js';
+import User from '../Models/UserModel.js';
 
 export const protectedRoute = async (req, res, next) => {
   let token = req.headers.authorization?.split(' ')[1] || req.cookies.token;
